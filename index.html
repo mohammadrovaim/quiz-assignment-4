@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuizMaster :: Interactive CS Quiz</title>
+
+  <!-- Google Fonts: a monospace display face to echo "code", and a clean
+       sans-serif for body copy. Fallbacks are provided so the app still
+       looks good with no internet connection. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Decorative background grid, purely visual -->
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <main class="app-shell">
+
+    <!-- ============================================================
+         HOME SCREEN
+         ============================================================ -->
+    <section id="home-screen" class="screen active-screen">
+      <div class="editor-window welcome-card">
+        <div class="editor-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="editor-tab">welcome.js</span>
+        </div>
+
+        <div class="editor-body welcome-body">
+          <p class="eyebrow">// interactive_quiz_application</p>
+          <h1 class="logo-title">&lt;QuizMaster&nbsp;/&gt;</h1>
+          <p class="welcome-subtitle">
+            Test your knowledge of <span class="hl">Computer Science</span> &amp;
+            <span class="hl">Programming</span> with 17 hand-picked questions.
+          </p>
+
+          <ul class="feature-list">
+            <li><span class="feature-icon">⏱</span> 20 seconds per question</li>
+            <li><span class="feature-icon">📊</span> Instant score &amp; performance report</li>
+            <li><span class="feature-icon">🔍</span> Full answer review at the end</li>
+          </ul>
+
+          <button id="start-quiz-btn" class="btn btn-primary btn-large">
+            Start Quiz <span class="btn-arrow">→</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         QUIZ SCREEN
+         ============================================================ -->
+    <section id="quiz-screen" class="screen">
+      <div class="editor-window quiz-card">
+        <div class="editor-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="editor-tab">quiz.js</span>
+
+          <!-- Timer sits in the titlebar like a live "build status" -->
+          <div class="timer-wrap">
+            <span class="timer-icon">⏱</span>
+            <span id="timer-display">20</span>s
+          </div>
+        </div>
+
+        <div class="editor-body">
+
+          <!-- Progress -->
+          <div class="progress-row">
+            <span id="progress-label" class="progress-label">Question 1 of 17</span>
+            <div class="progress-track">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+          </div>
+
+          <!-- Question -->
+          <p class="code-comment">/**</p>
+          <h2 id="question-text" class="question-text"></h2>
+          <p class="code-comment close-comment"> */</p>
+
+          <!-- Options -->
+          <div id="options-list" class="options-list"></div>
+
+          <!-- Navigation -->
+          <div class="nav-row">
+            <button id="prev-btn" class="btn btn-ghost">← Previous</button>
+            <button id="next-btn" class="btn btn-primary">Next →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         RESULT SCREEN
+         ============================================================ -->
+    <section id="result-screen" class="screen">
+      <div class="editor-window result-card">
+        <div class="editor-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="editor-tab">results.json</span>
+        </div>
+
+        <div class="editor-body result-body">
+          <p class="eyebrow">// quiz_complete</p>
+          <h2 class="result-heading" id="performance-message">Excellent!</h2>
+
+          <div class="score-ring-wrap">
+            <svg class="score-ring" viewBox="0 0 160 160">
+              <circle class="ring-bg" cx="80" cy="80" r="70"></circle>
+              <circle id="ring-progress" class="ring-progress" cx="80" cy="80" r="70"></circle>
+            </svg>
+            <div class="score-ring-text">
+              <span id="score-percentage">0%</span>
+            </div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-box stat-correct">
+              <span class="stat-value" id="correct-count">0</span>
+              <span class="stat-key">Correct</span>
+            </div>
+            <div class="stat-box stat-incorrect">
+              <span class="stat-value" id="incorrect-count">0</span>
+              <span class="stat-key">Incorrect</span>
+            </div>
+            <div class="stat-box stat-total">
+              <span class="stat-value" id="total-count">0</span>
+              <span class="stat-key">Total</span>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button id="review-btn" class="btn btn-ghost">Review Answers</button>
+            <button id="restart-btn" class="btn btn-primary">Restart Quiz</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         REVIEW SCREEN
+         ============================================================ -->
+    <section id="review-screen" class="screen">
+      <div class="editor-window review-card">
+        <div class="editor-titlebar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="editor-tab">review.log</span>
+        </div>
+
+        <div class="editor-body">
+          <h2 class="review-heading">Answer Review</h2>
+          <div id="review-list" class="review-list"></div>
+
+          <div class="result-actions">
+            <button id="back-to-result-btn" class="btn btn-ghost">← Back to Results</button>
+            <button id="restart-from-review-btn" class="btn btn-primary">Restart Quiz</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- questions.js must load before script.js, since script.js uses the
+       quizQuestions array defined there. -->
+  <script src="questions.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+# ==============================================================================
+# ci-cd.yml — QuizMaster CI/CD pipeline with AI-assisted automation
+# ------------------------------------------------------------------------------
+# Trigger: every push/PR to main.
+#
+# Stages:
+#   1. build         — install deps
+#   2. ai_lint_fix    — run ESLint; if it finds AUTO-FIXABLE problems, apply
+#                        `eslint --fix` automatically (the "AI-assisted
+#                        auto-fixing build errors" requirement) and commit
+#                        the fix back to the branch. Non-auto-fixable errors
+#                        still fail the build, exactly like a human reviewer
+#                        (e.g. Copilot's "fix this" suggestion) would only
+#                        patch what's safe to patch automatically.
+#   3. test           — run the Jest suite (Assignment 4, Task 1) with
+#                        coverage and a machine-readable JSON report.
+#   4. ai_monitor      — feed the JSON report into scripts/analyze-test-results.js,
+#                        a lightweight statistical "AI monitoring" step that
+#                        flags failing tests, duration anomalies, and low
+#                        coverage, and RECOMMENDS whether to deploy or roll back.
+#   5. deploy         — only runs if ai_monitor recommended proceeding; deploys
+#                        the static site to GitHub Pages, then prints a
+#                        rollback suggestion command using the previous commit
+#                        SHA (deployment optimization / rollback suggestion).
+# ==============================================================================
+
+name: QuizMaster CI/CD with AI Automation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ---------------------------------------------------------------------------
+  build:
+  # ---------------------------------------------------------------------------
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+  # ---------------------------------------------------------------------------
+  ai_lint_fix:
+  # ---------------------------------------------------------------------------
+    name: "AI-assisted lint auto-fix"
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm install --no-audit --no-fund
+
+      - name: Run ESLint (report only)
+        id: lint
+        run: npx eslint script.js questions.js --format json --output-file eslint-report.json
+        continue-on-error: true
+
+      - name: Auto-fix safe issues (simulates an AI/Copilot "fix this" pass)
+        run: npx eslint script.js questions.js --fix
+
+      - name: Re-run ESLint to confirm build-blocking errors are resolved
+        run: npx eslint script.js questions.js
+
+      - name: Commit auto-fixed files back to the branch
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "ai-lint-bot"
+          git config user.email "ai-lint-bot@users.noreply.github.com"
+          git diff --quiet || (git add -A && git commit -m "chore: AI-assisted auto-fix of lint issues [skip ci]" && git push)
+
+  # ---------------------------------------------------------------------------
+  test:
+  # ---------------------------------------------------------------------------
+    name: "AI-generated automated tests (Jest)"
+    needs: ai_lint_fix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm install --no-audit --no-fund
+
+      - name: Run Jest test suite with coverage + JSON report
+        run: npx jest --coverage --json --outputFile=jest-results.json
+
+      - name: Upload test evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            jest-results.json
+            coverage/coverage-summary.json
+            coverage/lcov-report/
+
+  # ---------------------------------------------------------------------------
+  ai_monitor:
+  # ---------------------------------------------------------------------------
+    name: "AI monitoring & anomaly detection"
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-results
+
+      - name: Analyze results for anomalies (failing tests, slow tests, low coverage)
+        run: node scripts/analyze-test-results.js jest-results.json coverage/coverage-summary.json
+
+  # ---------------------------------------------------------------------------
+  deploy:
+  # ---------------------------------------------------------------------------
+    name: "Deploy to GitHub Pages"
+    needs: ai_monitor
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Print rollback suggestion
+        if: failure()
+        run: |
+          echo "Deployment failed."
+          echo "AI rollback suggestion: revert to the last known-good commit with:"
+          echo "  git revert ${{ github.sha }} --no-edit && git push"
+          echo "Or redeploy the previous successful workflow run from the Actions tab."

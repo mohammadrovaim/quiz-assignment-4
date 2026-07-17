@@ -1,0 +1,28 @@
+{
+  "name": "quizmaster-app",
+  "version": "1.0.0",
+  "description": "Interactive Quiz Application (Assignment 3) with AI-assisted automated tests and CI/CD (Assignment 4)",
+  "main": "script.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "lint": "eslint script.js questions.js",
+    "lint:fix": "eslint script.js questions.js --fix"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "collectCoverageFrom": [
+      "script.js",
+      "questions.js"
+    ],
+    "coverageReporters": [
+      "text",
+      "text-summary",
+      "json-summary"
+    ]
+  }
+}

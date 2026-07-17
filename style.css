@@ -1,0 +1,587 @@
+/* ==========================================================================
+   style.css
+   --------------------------------------------------------------------------
+   Design concept: the whole quiz lives inside "code editor windows"
+   (like VS Code tabs with red/yellow/green traffic-light dots). This ties
+   the visual identity directly to the subject matter of the quiz -
+   Computer Science & Programming.
+   ========================================================================== */
+
+/* ---------- Design tokens ------------------------------------------------ */
+:root {
+  /* Colors */
+  --bg: #0b1120;
+  --bg-grid-line: rgba(124, 158, 255, 0.05);
+  --surface: #121b30;
+  --surface-alt: #182545;
+  --border: #263457;
+  --text-primary: #e8ecf4;
+  --text-muted: #8b96b3;
+
+  --accent-primary: #7c9eff;
+  --accent-primary-dark: #5c7fe0;
+  --accent-secondary: #f5a623;
+  --success: #3ddc97;
+  --danger: #ff6b6b;
+
+  /* Typography */
+  --font-display: 'JetBrains Mono', 'Courier New', monospace;
+  --font-body: 'Sora', 'Segoe UI', Arial, sans-serif;
+
+  /* Layout */
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+  --shadow-window: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* ---------- Reset ---------------------------------------------------------*/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Subtle background grid to reinforce the "code / IDE" feel */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--bg-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 720px;
+}
+
+/* ---------- Screen visibility handling ------------------------------------
+   Only one "screen" is shown at a time. script.js toggles the
+   "active-screen" class to switch between Home / Quiz / Result / Review.
+   -------------------------------------------------------------------------*/
+.screen {
+  display: none;
+}
+
+.screen.active-screen {
+  display: block;
+  animation: fadeSlideIn 0.4s ease;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Editor window "chrome" --------------------------------------- */
+.editor-window {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-window);
+  overflow: hidden;
+}
+
+.editor-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot-red    { background: #ff5f56; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green  { background: #27c93f; }
+
+.editor-tab {
+  margin-left: 10px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.editor-body {
+  padding: 36px;
+}
+
+/* ---------- Home screen ---------------------------------------------------*/
+.eyebrow {
+  font-family: var(--font-display);
+  color: var(--accent-primary);
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  margin-bottom: 14px;
+}
+
+.logo-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  line-height: 1.15;
+  margin-bottom: 18px;
+  color: var(--text-primary);
+}
+
+.welcome-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 28px;
+  max-width: 46ch;
+}
+
+.hl {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.feature-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 34px;
+}
+
+.feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.feature-icon {
+  font-size: 1.1rem;
+}
+
+/* ---------- Buttons ---------------------------------------------------- */
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-primary-dark));
+  color: #071022;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 8px 24px rgba(124, 158, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-large {
+  padding: 15px 30px;
+  font-size: 1.05rem;
+}
+
+.btn-arrow {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.btn-primary:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transform: translateY(-2px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ---------- Quiz screen ---------------------------------------------------*/
+.timer-wrap {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--accent-secondary);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  min-width: 60px;
+  justify-content: center;
+}
+
+.timer-wrap.timer-warning {
+  color: var(--danger);
+  border-color: var(--danger);
+  animation: pulseWarn 1s infinite;
+}
+
+@keyframes pulseWarn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.progress-row {
+  margin-bottom: 24px;
+}
+
+.progress-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-alt);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--success));
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.code-comment {
+  font-family: var(--font-display);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.close-comment {
+  margin-top: 18px;
+  margin-bottom: 8px;
+}
+
+.question-text {
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 6px 0 8px 4px;
+  color: var(--text-primary);
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 22px 0 30px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+  font-size: 0.98rem;
+}
+
+.option-item:hover {
+  border-color: var(--accent-primary);
+  transform: translateX(4px);
+}
+
+.option-marker {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.option-item.selected {
+  border-color: var(--accent-primary);
+  background: rgba(124, 158, 255, 0.1);
+}
+
+.option-item.selected .option-marker {
+  background: var(--accent-primary);
+  color: #071022;
+  border-color: var(--accent-primary);
+}
+
+/* Review-mode coloring (correct / incorrect) reused on the review screen */
+.option-item.correct-answer {
+  border-color: var(--success);
+  background: rgba(61, 220, 151, 0.1);
+}
+.option-item.wrong-answer {
+  border-color: var(--danger);
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* ---------- Result screen ---------------------------------------------------*/
+.result-body {
+  text-align: center;
+}
+
+.result-heading {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  margin-bottom: 24px;
+  color: var(--accent-primary);
+}
+
+.score-ring-wrap {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 28px;
+}
+
+.score-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  fill: none;
+  stroke: var(--surface-alt);
+  stroke-width: 12;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: var(--accent-primary);
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-dasharray: 440;
+  stroke-dashoffset: 440;
+  transition: stroke-dashoffset 1s ease;
+}
+
+.score-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+
+.stats-row {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.stat-box {
+  flex: 1;
+  min-width: 100px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.stat-correct .stat-value { color: var(--success); }
+.stat-incorrect .stat-value { color: var(--danger); }
+.stat-total .stat-value { color: var(--accent-primary); }
+
+.stat-key {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.result-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ---------- Review screen ---------------------------------------------------*/
+.review-heading {
+  font-family: var(--font-display);
+  margin-bottom: 22px;
+  color: var(--accent-primary);
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-right: 6px;
+  margin-bottom: 26px;
+}
+
+.review-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  background: var(--bg);
+}
+
+.review-question {
+  font-weight: 600;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.review-answer-line {
+  font-size: 0.92rem;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+}
+
+.review-answer-line.user-correct {
+  background: rgba(61, 220, 151, 0.12);
+  color: var(--success);
+}
+
+.review-answer-line.user-wrong {
+  background: rgba(255, 107, 107, 0.12);
+  color: var(--danger);
+}
+
+.review-answer-line.correct-reveal {
+  background: rgba(61, 220, 151, 0.12);
+  color: var(--success);
+}
+
+/* ---------- Scrollbar polish ---------------------------------------------------*/
+.review-list::-webkit-scrollbar {
+  width: 6px;
+}
+.review-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+/* ---------- Responsive ---------------------------------------------------*/
+@media (max-width: 560px) {
+  .editor-body {
+    padding: 22px;
+  }
+
+  .logo-title {
+    font-size: 1.7rem;
+  }
+
+  .nav-row {
+    flex-direction: column-reverse;
+  }
+
+  .nav-row .btn {
+    width: 100%;
+  }
+
+  .stats-row {
+    flex-direction: column;
+  }
+
+  .result-actions {
+    flex-direction: column;
+  }
+
+  .result-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
