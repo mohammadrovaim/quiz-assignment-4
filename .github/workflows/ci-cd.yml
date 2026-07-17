@@ -33,9 +33,7 @@ on:
     branches: [main]
 
 jobs:
-  # ---------------------------------------------------------------------------
   build:
-  # ---------------------------------------------------------------------------
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -45,14 +43,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-  # ---------------------------------------------------------------------------
   ai_lint_fix:
-  # ---------------------------------------------------------------------------
     name: "AI-assisted lint auto-fix"
     needs: build
     runs-on: ubuntu-latest
@@ -61,7 +56,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
       - run: npm install --no-audit --no-fund
 
       - name: Run ESLint (report only)
@@ -82,9 +76,7 @@ jobs:
           git config user.email "ai-lint-bot@users.noreply.github.com"
           git diff --quiet || (git add -A && git commit -m "chore: AI-assisted auto-fix of lint issues [skip ci]" && git push)
 
-  # ---------------------------------------------------------------------------
   test:
-  # ---------------------------------------------------------------------------
     name: "AI-generated automated tests (Jest)"
     needs: ai_lint_fix
     runs-on: ubuntu-latest
@@ -93,7 +85,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
       - run: npm install --no-audit --no-fund
 
       - name: Run Jest test suite with coverage + JSON report
@@ -108,9 +99,7 @@ jobs:
             coverage/coverage-summary.json
             coverage/lcov-report/
 
-  # ---------------------------------------------------------------------------
   ai_monitor:
-  # ---------------------------------------------------------------------------
     name: "AI monitoring & anomaly detection"
     needs: test
     runs-on: ubuntu-latest
@@ -126,9 +115,7 @@ jobs:
       - name: Analyze results for anomalies (failing tests, slow tests, low coverage)
         run: node scripts/analyze-test-results.js jest-results.json coverage/coverage-summary.json
 
-  # ---------------------------------------------------------------------------
   deploy:
-  # ---------------------------------------------------------------------------
     name: "Deploy to GitHub Pages"
     needs: ai_monitor
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
